@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FSD Trust Coach — Prototype</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    background: #0a0a0a;
+    color: #e8e8e8;
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: #111;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .tesla-t {
+    width: 28px;
+    height: 28px;
+    fill: #e31937;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; color: #fff; }
+  .topbar-subtitle { font-size: 11px; color: #666; margin-top: 1px; }
+  .topbar-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #4ade80;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: #111;
+    border-bottom: 1px solid #222;
+    display: flex;
+    padding: 0 32px;
+    gap: 4px;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 14px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn:hover { color: #ccc; }
+  .tab-btn.active { color: #fff; border-bottom-color: #e31937; }
+
+  /* ── MAIN LAYOUT ── */
+  .main { padding: 32px; max-width: 1100px; margin: 0 auto; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── SECTION HEADER ── */
+  .section-header { margin-bottom: 24px; }
+  .section-header h2 { font-size: 20px; font-weight: 600; color: #fff; }
+  .section-header p { font-size: 13px; color: #666; margin-top: 6px; line-height: 1.5; }
+
+  /* ── CARDS ── */
+  .card {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #555;
+    margin-bottom: 16px;
+  }
+
+  /* ── STATUS BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.ready { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .badge.caution { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge.degraded { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ── CAMERA GRID ── */
+  .camera-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .camera-item {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .camera-item:hover { border-color: #444; }
+  .camera-item.selected { border-color: #e31937; background: rgba(227,25,55,0.08); }
+  .camera-name { font-size: 11px; color: #888; margin-bottom: 10px; }
+  .camera-score-bar { height: 4px; background: #222; border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+  .camera-score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .score-good { background: #4ade80; }
+  .score-warn { background: #fbbf24; }
+  .score-bad { background: #f87171; }
+  .camera-score-val { font-size: 13px; font-weight: 600; }
+
+  /* ── CAR DIAGRAM ── */
+  .car-diagram { display: flex; justify-content: center; margin: 20px 0; }
+
+  /* ── OVERALL STATUS BAR ── */
+  .overall-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .overall-label { font-size: 13px; color: #888; }
+  .overall-value { font-size: 18px; font-weight: 700; }
+
+  /* ── MAP FRESHNESS ── */
+  .meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .meta-pill {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 12px;
+    flex: 1;
+    min-width: 140px;
+  }
+  .meta-pill .label { color: #555; margin-bottom: 4px; }
+  .meta-pill .value { color: #ccc; font-weight: 600; }
+
+  /* ── EXPLANATION ENGINE (TAB B) ── */
+  .scenario-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .scenario-btn {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    color: #ccc;
+  }
+  .scenario-btn:hover { border-color: #444; }
+  .scenario-btn.active { border-color: #e31937; background: rgba(227,25,55,0.08); }
+  .scenario-btn .s-icon { font-size: 20px; margin-bottom: 6px; }
+  .scenario-btn .s-title { font-size: 12px; font-weight: 600; color: #fff; }
+  .scenario-btn .s-desc { font-size: 11px; color: #666; margin-top: 2px; }
+
+  .engine-io {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .io-box {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .io-box h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 14px; }
+  .io-field { margin-bottom: 10px; }
+  .io-field label { font-size: 11px; color: #666; display: block; margin-bottom: 3px; }
+  .io-field .val { font-size: 13px; color: #ccc; font-family: 'SF Mono', 'Courier New', monospace; background: #0a0a0a; padding: 6px 10px; border-radius: 5px; border: 1px solid #222; }
+
+  .run-btn {
+    background: #e31937;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin: 16px 0;
+    transition: background 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .run-btn:hover { background: #c41530; }
+  .run-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+  .output-display {
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  .output-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .output-explanation {
+    font-size: 18px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1.5;
+    min-height: 54px;
+  }
+  .output-meta { display: flex; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #1a1a1a; }
+  .output-meta-item { font-size: 11px; color: #555; }
+  .output-meta-item span { color: #888; font-weight: 600; }
+
+  .typing-cursor { display: inline-block; width: 2px; height: 18px; background: #e31937; margin-left: 2px; animation: blink 0.8s infinite; vertical-align: middle; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── TRUST BUILDER (TAB C) ── */
+  .route-card {
+    background: linear-gradient(135deg, #161616 0%, #1a1010 100%);
+    border: 1px solid #2a1a1a;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .route-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #e31937, transparent);
+  }
+  .route-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #e31937; margin-bottom: 10px; }
+  .route-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .route-desc { font-size: 13px; color: #888; line-height: 1.5; margin-bottom: 16px; }
+  .route-actions { display: flex; gap: 10px; }
+  .btn-primary {
+    background: #e31937;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #c41530; }
+  .btn-secondary {
+    background: transparent;
+    color: #888;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: #555; color: #ccc; }
+
+  /* ── PROGRESS CARD ── */
+  .progress-card {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .progress-title { font-size: 14px; font-weight: 600; color: #fff; }
+  .progress-week { font-size: 12px; color: #555; }
+  .progress-bar-outer { height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .progress-bar-inner { height: 100%; background: linear-gradient(90deg, #e31937, #ff6b6b); border-radius: 4px; transition: width 1s ease; }
+  .progress-stats { display: flex; justify-content: space-between; font-size: 12px; color: #666; }
+  .progress-stats .highlight { color: #fff; font-weight: 600; }
+
+  /* ── WEEK MILESTONES ── */
+  .milestones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+  .milestone {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .milestone.done { border-color: #2d5a2d; background: rgba(74,222,128,0.05); }
+  .milestone.current { border-color: #e31937; background: rgba(227,25,55,0.05); }
+  .milestone-week { font-size: 10px; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .milestone-miles { font-size: 18px; font-weight: 700; }
+  .milestone.done .milestone-miles { color: #4ade80; }
+  .milestone.current .milestone-miles { color: #fff; }
+  .milestone:not(.done):not(.current) .milestone-miles { color: #444; }
+  .milestone-label { font-size: 10px; color: #555; margin-top: 4px; }
+
+  /* ── COACHING LOG ── */
+  .log-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  .log-text { font-size: 13px; color: #ccc; line-height: 1.5; }
+  .log-time { font-size: 11px; color: #444; margin-top: 3px; }
+
+  /* ── AGENT TRACE ── */
+  .trace-box {
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 11px;
+    color: #555;
+    margin-top: 16px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .trace-line { margin-bottom: 3px; }
+  .trace-line .t-time { color: #333; }
+  .trace-line .t-agent { color: #4ade80; }
+  .trace-line .t-action { color: #888; }
+  .trace-line .t-result { color: #fbbf24; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: #1a1a1a; margin: 24px 0; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .camera-grid { grid-template-columns: repeat(2, 1fr); }
+    .engine-io { grid-template-columns: 1fr; }
+    .scenario-selector { grid-template-columns: 1fr 1fr; }
+    .milestones { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg class="tesla-t" viewBox="0 0 342 512" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 57.3L171 512 342 57.3C285.5 33.7 228.5 21.3 171 21.3S56.5 33.7 0 57.3zm171-36c39.1 0 78.3 7 116.3 19.3l-116.3 19-116.3-19C96.7 28.3 131.9 21.3 171 21.3zM171 21.3"/>
+    </svg>
+    <div>
+      <div class="topbar-title">FSD Trust Coach</div>
+      <div class="topbar-subtitle">MGMT 276 · Anderson School · Prototype v1.0</div>
+    </div>
+  </div>
+  <div class="topbar-status">
+    <div class="status-dot"></div>
+    Agent Active
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="switchTab('a')">Sub-Agent A — Readiness Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('b')">Sub-Agent B — Explanation Engine</button>
+  <button class="tab-btn" onclick="switchTab('c')">Sub-Agent C — Trust Builder</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ══════════════════════════════════════════════════
+       TAB A — READINESS DASHBOARD
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-a">
+    <div class="section-header">
+      <h2>FSD Readiness Dashboard</h2>
+      <p>Sub-Agent A monitors all 8 exterior cameras continuously and surfaces health status before activation — not after failure. Select a camera below to simulate a degradation event.</p>
+    </div>
+
+    <div class="overall-status" id="overall-status-bar">
+      <div>
+        <div class="overall-label">Overall FSD Status</div>
+        <div class="overall-value" id="overall-value" style="color:#4ade80">● READY</div>
+      </div>
+      <div id="overall-badge"><span class="badge ready"><span class="badge-dot"></span>All cameras nominal</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Camera Health — Click to Simulate Degradation</div>
+      <div class="camera-grid" id="camera-grid">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <div class="meta-row" style="margin-bottom:16px">
+      <div class="meta-pill">
+        <div class="label">Map Data Freshness</div>
+        <div class="value" id="map-fresh">Updated 4 minutes ago</div>
+      </div>
+      <div class="meta-pill">
+        <div class="label">Weather</div>
+        <div class="value" id="weather-val">Clear · Visibility 10 mi</div>
+      </div>
+      <div class="meta-pill">
+        <div class="label">Sun Angle Risk</div>
+        <div class="value" id="sun-val">Low (6:31 PM)</div>
+      </div>
+      <div class="meta-pill">
+        <div class="label">Last Full Clean</div>
+        <div class="value">2 days ago</div>
+      </div>
+    </div>
+
+    <div class="card" id="notification-panel" style="display:none; border-color:#e31937">
+      <div class="card-title" style="color:#e31937">⚡ Agent Notification Generated</div>
+      <div style="font-size:15px; color:#fff; line-height:1.6" id="notif-text"></div>
+      <div style="margin-top:12px; font-size:12px; color:#555">Delivered via Tesla app push notification · <span id="notif-time"></span></div>
+    </div>
+
+    <div class="trace-box" id="trace-a">
+      <div class="trace-line"><span class="t-time">[00:00.000]</span> <span class="t-agent">SubAgent-A (Monitor)</span> <span class="t-action">→ initialized · polling interval: 60s</span></div>
+      <div class="trace-line"><span class="t-time">[00:01.012]</span> <span class="t-agent">SubAgent-A</span> <span class="t-action">→ camera health check · all 8 cameras</span> <span class="t-result">· status: READY</span></div>
+      <div class="trace-line"><span class="t-time">[00:01.015]</span> <span class="t-agent">SubAgent-A</span> <span class="t-action">→ map freshness check</span> <span class="t-result">· delta: 4 min · FRESH</span></div>
+      <div class="trace-line"><span class="t-time">[00:01.016]</span> <span class="t-agent">SubAgent-A</span> <span class="t-action">→ weather API</span> <span class="t-result">· clear · no degradation flag</span></div>
+      <div class="trace-line"><span class="t-time">[00:01.018]</span> <span class="t-agent">SubAgent-A</span> <span class="t-action">→ output</span> <span class="t-result">· overall_status: READY · notification_triggered: false</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB B — EXPLANATION ENGINE
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-b">
+    <div class="section-header">
+      <h2>Plain-Language Explanation Engine</h2>
+      <p>Sub-Agent B converts structured FSD disengagement events into a one-sentence, actionable plain-language explanation — delivered on the in-car display and Tesla app within 700ms. Select a scenario and run the agent.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Select Disengagement Scenario</div>
+      <div class="scenario-selector" id="scenario-selector">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <div class="engine-io">
+      <div class="io-box">
+        <h4>Structured Input — Disengagement Event Payload</h4>
+        <div id="input-fields">
+          <!-- generated by JS -->
+        </div>
+      </div>
+      <div class="io-box">
+        <h4>Agent Output Schema</h4>
+        <div class="io-field"><label>explanation_text</label><div class="val" id="out-explanation">—</div></div>
+        <div class="io-field"><label>action_required</label><div class="val" id="out-action">—</div></div>
+        <div class="io-field"><label>service_visit_needed</label><div class="val" id="out-service">—</div></div>
+        <div class="io-field"><label>restore_condition</label><div class="val" id="out-restore">—</div></div>
+        <div class="io-field"><label>safety_check_passed</label><div class="val" id="out-safety">—</div></div>
+        <div class="io-field"><label>word_count</label><div class="val" id="out-words">—</div></div>
+      </div>
+    </div>
+
+    <button class="run-btn" id="run-btn" onclick="runEngine()">▶ Run Explanation Engine</button>
+
+    <div class="output-display">
+      <div class="output-label">In-Car Display Message</div>
+      <div class="output-explanation" id="output-display-text">Select a scenario above and click Run to generate an explanation.</div>
+      <div class="output-meta">
+        <div class="output-meta-item">Latency: <span id="out-latency">—</span></div>
+        <div class="output-meta-item">Hallucination check: <span id="out-halluc">—</span></div>
+        <div class="output-meta-item">Autonomy classifier: <span id="out-autonomy">—</span></div>
+        <div class="output-meta-item">Cost: <span id="out-cost">—</span></div>
+      </div>
+    </div>
+
+    <div class="trace-box" id="trace-b" style="margin-top:16px">
+      <div class="trace-line"><span class="t-time">[ready]</span> <span class="t-agent">SubAgent-B (Explanation Engine)</span> <span class="t-action">→ awaiting disengagement event</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB C — TRUST BUILDER
+  ══════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-c">
+    <div class="section-header">
+      <h2>Progressive Trust Builder</h2>
+      <p>Sub-Agent C analyzes commute patterns during the first 30 days to surface personalized FSD opportunities and build the habit before the renewal decision arrives.</p>
+    </div>
+
+    <div class="route-card">
+      <div class="route-tag">🎯 Agent Recommendation — Day 12 of Trial</div>
+      <div class="route-title">Your I-405 North commute is ideal for FSD today</div>
+      <div class="route-desc">Based on your last 8 commutes, this 14-mile stretch has 94% FSD compatibility — clear lanes, favorable weather, and no construction zones. Activating here builds the habit on a route you already know.</div>
+      <div class="route-actions">
+        <button class="btn-primary" onclick="activateFSD()">Activate FSD</button>
+        <button class="btn-secondary">Remind me tomorrow</button>
+      </div>
+    </div>
+
+    <div class="progress-card">
+      <div class="progress-header">
+        <div class="progress-title">Week 2 FSD Miles</div>
+        <div class="progress-week">Trial Day 8–14</div>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" style="width: 63%" id="progress-fill"></div>
+      </div>
+      <div class="progress-stats">
+        <div><span class="highlight" id="miles-done">44</span> miles this week</div>
+        <div>Goal: <span class="highlight">70 miles</span></div>
+        <div id="progress-pct">63% complete</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">30-Day Trial Progress</div>
+      <div class="milestones" id="milestones-grid">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Coaching Journal — Park Mode Only</div>
+      <div id="coaching-log">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <div class="trace-box" id="trace-c">
+      <div class="trace-line"><span class="t-time">[day-12]</span> <span class="t-agent">SubAgent-C</span> <span class="t-action">→ analyzing 8 prior commutes · commute pattern: I-405 N (14 mi, 94% compat)</span></div>
+      <div class="trace-line"><span class="t-time">[day-12]</span> <span class="t-agent">SubAgent-C</span> <span class="t-action">→ weather check</span> <span class="t-result">· clear · no precipitation flag</span></div>
+      <div class="trace-line"><span class="t-time">[day-12]</span> <span class="t-agent">SubAgent-C</span> <span class="t-action">→ route suggestion generated</span> <span class="t-result">· confidence: HIGH · prompt: "Your I-405 North commute is ideal for FSD today"</span></div>
+      <div class="trace-line"><span class="t-time">[day-12]</span> <span class="t-agent">SubAgent-C</span> <span class="t-action">→ weekly progress</span> <span class="t-result">· miles: 44 / 70 · 63%</span></div>
+      <div class="trace-line"><span class="t-time">[day-12]</span> <span class="t-agent">SubAgent-C</span> <span class="t-action">→ emitting to SubAgent-D</span> <span class="t-result">· event: ROUTE_PROMPT_SHOWN · days_from_T0: -18</span></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════
+
+const cameras = [
+  { id:'front_main',   name:'Front Main',      score:0.97, flag:'CLEAR' },
+  { id:'front_narrow', name:'Front Narrow',    score:0.95, flag:'CLEAR' },
+  { id:'left_b_pillar',name:'Left B-Pillar',   score:0.88, flag:'CLEAR' },
+  { id:'right_b_pillar',name:'Right B-Pillar', score:0.91, flag:'CLEAR' },
+  { id:'left_fender',  name:'Left Fender',     score:0.93, flag:'CLEAR' },
+  { id:'right_fender', name:'Right Fender',    score:0.90, flag:'CLEAR' },
+  { id:'rear_main',    name:'Rear Main',       score:0.96, flag:'CLEAR' },
+  { id:'rear_plate',   name:'Rear Plate',      score:0.94, flag:'CLEAR' },
+];
+
+let cameraScores = cameras.map(c => ({...c}));
+
+const scenarios = [
+  {
+    id:'cam_obstruction',
+    icon:'🪟',
+    title:'Camera Obstruction',
+    desc:'Dirt on right B-pillar lens',
+    input:{
+      reason_code:'CAM_OBSTRUCTION',
+      camera_affected:'right_b_pillar',
+      camera_score:'0.23',
+      weather:'Clear',
+      route_context:'Highway I-405 N',
+      severity:'HIGH',
+      prior_disengagements_today:'0',
+    },
+    output:{
+      explanation:'Right B-pillar camera is dirty — clean the lens and FSD will restore immediately.',
+      action_required:'CLEAN_CAMERA',
+      service_visit_needed:'false',
+      restore_condition:'Camera score ≥ 0.70',
+      safety_check_passed:'true',
+    },
+    trace:[
+      'received event · code: CAM_OBSTRUCTION · camera: right_b_pillar · score: 0.23',
+      'schema validation · all required fields present · PASS',
+      'hallucination guard · checking output against input fields · PASS',
+      'RAG lookup · camera:right_b_pillar · score:0.23 → obstruction pattern · 98% match',
+      'explanation generated · 15 words · within 25-word cap',
+      'autonomy classifier · no forbidden phrases · PASS',
+      'service_visit_needed: false · reason: self-resolvable obstruction',
+      'output dispatched to in-car display + Tesla app',
+    ],
+    latency:'241ms', halluc:'0% (clean)', autonomy:'PASS — no autonomy language', cost:'$0.0011'
+  },
+  {
+    id:'weather_degraded',
+    icon:'🌧️',
+    title:'Weather Degradation',
+    desc:'Heavy rain reducing visibility',
+    input:{
+      reason_code:'WEATHER_DEGRADED',
+      camera_affected:'front_main',
+      camera_score:'0.51',
+      weather:'Heavy Rain · 0.8 in/hr',
+      route_context:'Surface street · Residential',
+      severity:'MEDIUM',
+      prior_disengagements_today:'1',
+    },
+    output:{
+      explanation:'Heavy rain is reducing front camera confidence — FSD will restore when precipitation eases.',
+      action_required:'NONE',
+      service_visit_needed:'false',
+      restore_condition:'Camera score ≥ 0.70 sustained for 2 min',
+      safety_check_passed:'true',
+    },
+    trace:[
+      'received event · code: WEATHER_DEGRADED · camera: front_main · score: 0.51',
+      'schema validation · PASS',
+      'RAG lookup · weather:heavy_rain · region:Los Angeles · season:spring',
+      'retrieved: score 0.51 in heavy rain → self-resolves in ~12 min · 87% fleet match',
+      'threshold override: HOLD_CAUTION (not DEGRADED) — consistent with fleet pattern',
+      'explanation generated · 14 words · within cap',
+      'autonomy classifier · PASS',
+      'output dispatched',
+    ],
+    latency:'318ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0014'
+  },
+  {
+    id:'glare',
+    icon:'☀️',
+    title:'Sun Glare',
+    desc:'Westbound afternoon glare',
+    input:{
+      reason_code:'GLARE',
+      camera_affected:'front_main',
+      camera_score:'0.44',
+      weather:'Clear',
+      route_context:'Westbound · 5:48 PM',
+      severity:'MEDIUM',
+      prior_disengagements_today:'0',
+    },
+    output:{
+      explanation:'Afternoon sun on the front camera is reducing FSD confidence — it will restore as you change direction or the sun lowers.',
+      action_required:'NONE',
+      service_visit_needed:'false',
+      restore_condition:'Sun azimuth shift ≥ 15° or score ≥ 0.70',
+      safety_check_passed:'true',
+    },
+    trace:[
+      'received event · code: GLARE · camera: front_main · score: 0.44',
+      'solar angle API · azimuth: 278° · elevation: 12° · heading: westbound',
+      'RAG lookup · glare pattern · westbound · spring · 5:48 PM',
+      'retrieved: score recovers in ~8 min when route turns or sun sets',
+      'explanation generated · 18 words · within cap',
+      'autonomy classifier · PASS',
+      'service_visit_needed: false',
+    ],
+    latency:'289ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0013'
+  },
+  {
+    id:'attention_warning',
+    icon:'⚠️',
+    title:'Attention Warnings',
+    desc:'Multiple inattention strikes',
+    input:{
+      reason_code:'ATTENTION_WARNING',
+      camera_affected:'null',
+      camera_score:'null',
+      weather:'Clear',
+      route_context:'Highway I-10 W',
+      severity:'HIGH',
+      prior_disengagements_today:'2',
+    },
+    output:{
+      explanation:'FSD is paused — multiple attention warnings were detected this week. It will restore in 3 days.',
+      action_required:'WAIT',
+      service_visit_needed:'false',
+      restore_condition:'Strike decay timer: 72 hours',
+      safety_check_passed:'true',
+    },
+    trace:[
+      'received event · code: ATTENTION_WARNING · strikes_this_week: 4/5',
+      'schema validation · PASS',
+      'driver profile: primary · strike decay timer: 72h',
+      'RAG lookup · not applicable (policy-based, not sensor-based)',
+      'explanation generated · 17 words · policy-grounded · no fabricated reason',
+      'autonomy classifier · PASS',
+      'note: service_visit_needed: false — behavioral issue, not hardware',
+    ],
+    latency:'198ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0009'
+  },
+  {
+    id:'construction',
+    icon:'🚧',
+    title:'Construction Zone',
+    desc:'Lane markings unavailable',
+    input:{
+      reason_code:'CONSTRUCTION_ZONE',
+      camera_affected:'front_main',
+      camera_score:'0.79',
+      weather:'Clear',
+      route_context:'I-5 S · Active construction · 1.2 mi zone',
+      severity:'LOW',
+      prior_disengagements_today:'0',
+    },
+    output:{
+      explanation:'Construction ahead has removed lane markings — FSD will resume automatically once you exit the work zone.',
+      action_required:'MANUAL_CONTROL',
+      service_visit_needed:'false',
+      restore_condition:'Lane confidence score ≥ 0.80',
+      safety_check_passed:'true',
+    },
+    trace:[
+      'received event · code: CONSTRUCTION_ZONE · map context: active work zone 1.2 mi',
+      'map freshness: 3 min · work zone boundary confirmed',
+      'explanation generated · 16 words · mentions auto-restore',
+      'autonomy classifier · PASS',
+      'restore_condition: auto on lane detection recovery',
+    ],
+    latency:'212ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0010'
+  },
+  {
+    id:'multi_driver',
+    icon:'👥',
+    title:'Multi-Driver Suspension',
+    desc:'Secondary driver triggered pause',
+    input:{
+      reason_code:'MULTI_DRIVER_SUSPENSION',
+      camera_affected:'null',
+      camera_score:'null',
+      weather:'Clear',
+      route_context:'City streets · Driver: Primary profile',
+      severity:'MEDIUM',
+      caused_by_non_primary:'true',
+    },
+    output:{
+      explanation:'FSD is paused because another driver on this vehicle accumulated attention warnings this week — it will restore in 5 days.',
+      action_required:'WAIT',
+      service_visit_needed:'false',
+      restore_condition:'Strike decay timer: 5 days',
+      safety_check_passed:'true',
+    },
+    trace:[
+      'received event · code: MULTI_DRIVER_SUSPENSION · caused_by_non_primary: true',
+      'active profile: primary · suspension source: secondary profile (3 strikes)',
+      'explanation generated · 19 words · correctly attributes cause to other driver',
+      'key: primary driver not blamed — explanation isolates cause accurately',
+      'autonomy classifier · PASS',
+      'note: prevents primary trialist from assuming they caused the suspension',
+    ],
+    latency:'267ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0012'
+  },
+];
+
+const milestoneData = [
+  { week:'Week 1', miles:28, target:35, done:true },
+  { week:'Week 2', miles:44, target:70, done:false, current:true },
+  { week:'Week 3', miles:0,  target:105, done:false },
+  { week:'Week 4', miles:0,  target:140, done:false },
+];
+
+const coachingLog = [
+  { icon:'✅', text:'Great activation! You used FSD for 12 consecutive miles on I-405 N without intervention — your longest clean session yet.', time:'Today, 8:42 AM' },
+  { icon:'💡', text:'FSD noticed you tapped the accelerator while engaged near mile marker 24. At highway speed this overrides steering assist briefly. Let FSD handle speed on cruise-set routes for the smoothest experience.', time:'Yesterday, 6:17 PM' },
+  { icon:'📍', text:'Your commute data shows the I-405 N on-ramp at Sunset is your highest-compatibility stretch. We\'ll prioritize suggestions there.', time:'May 14, 7:30 AM' },
+  { icon:'🌟', text:'Week 1 complete — you activated FSD on 5 of 7 commute days. Subscribers who reach 5+ activations in week 1 are 3× more likely to renew. You\'re on track.', time:'May 12, 11:00 PM' },
+];
+
+// ════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════
+
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['a','b','c'][i]===t));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+}
+
+// ════════════════════════════════════════════════
+// TAB A — CAMERA DASHBOARD
+// ════════════════════════════════════════════════
+
+function scoreColor(s) { return s >= 0.80 ? 'score-good' : s >= 0.60 ? 'score-warn' : 'score-bad'; }
+function scoreHex(s)   { return s >= 0.80 ? '#4ade80'  : s >= 0.60 ? '#fbbf24'  : '#f87171'; }
+
+function renderCameras() {
+  const grid = document.getElementById('camera-grid');
+  grid.innerHTML = cameraScores.map((c,i) => `
+    <div class="camera-item" id="cam-${i}" onclick="toggleCamera(${i})">
+      <div class="camera-name">${c.name}</div>
+      <div class="camera-score-bar"><div class="camera-score-fill ${scoreColor(c.score)}" style="width:${Math.round(c.score*100)}%"></div></div>
+      <div class="camera-score-val" style="color:${scoreHex(c.score)}">${Math.round(c.score*100)}%</div>
+    </div>
+  `).join('');
+}
+
+function toggleCamera(i) {
+  const cam = cameraScores[i];
+  const wasGood = cam.score >= 0.80;
+  cam.score = wasGood ? 0.21 : cameras[i].score;
+  cam.flag  = wasGood ? 'BLOCKED' : 'CLEAR';
+  document.getElementById('cam-'+i).classList.toggle('selected', wasGood);
+  renderCameras();
+  updateOverallStatus();
+}
+
+function updateOverallStatus() {
+  const minScore = Math.min(...cameraScores.map(c => c.score));
+  const degraded = cameraScores.filter(c => c.score < 0.60);
+  const caution  = cameraScores.filter(c => c.score < 0.80 && c.score >= 0.60);
+  const notifPanel = document.getElementById('notification-panel');
+
+  let status, val, badgeHtml;
+  if (degraded.length > 0) {
+    status = 'DEGRADED'; val = '● DEGRADED';
+    document.getElementById('overall-value').style.color = '#f87171';
+    badgeHtml = `<span class="badge degraded"><span class="badge-dot"></span>${degraded.length} camera${degraded.length>1?'s':''} degraded</span>`;
+    showNotification(degraded[0]);
+    addTraceA(degraded[0]);
+  } else if (caution.length > 0) {
+    status = 'CAUTION'; val = '● CAUTION';
+    document.getElementById('overall-value').style.color = '#fbbf24';
+    badgeHtml = `<span class="badge caution"><span class="badge-dot"></span>Monitor conditions</span>`;
+    notifPanel.style.display = 'none';
+  } else {
+    status = 'READY'; val = '● READY';
+    document.getElementById('overall-value').style.color = '#4ade80';
+    badgeHtml = `<span class="badge ready"><span class="badge-dot"></span>All cameras nominal</span>`;
+    notifPanel.style.display = 'none';
+  }
+  document.getElementById('overall-value').textContent = val;
+  document.getElementById('overall-badge').innerHTML = badgeHtml;
+}
+
+function showNotification(cam) {
+  const notifPanel = document.getElementById('notification-panel');
+  const now = new Date();
+  notifPanel.style.display = 'block';
+  document.getElementById('notif-text').textContent =
+    `⚠️ FSD Readiness Alert: Your ${cam.name} camera score dropped to ${Math.round(cam.score*100)}% — FSD may become unavailable. Clean the ${cam.name} lens before your next drive to restore full readiness.`;
+  document.getElementById('notif-time').textContent = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function addTraceA(cam) {
+  const tb = document.getElementById('trace-a');
+  const t = Date.now() % 100000;
+  tb.innerHTML += `<div class="trace-line"><span class="t-time">[${(t/1000).toFixed(3)}]</span> <span class="t-agent">SubAgent-A</span> <span class="t-action">→ degradation detected · camera: ${cam.id} · score: ${cam.score.toFixed(2)}</span> <span class="t-result">· overall_status: DEGRADED · notification_triggered: true</span></div>`;
+  tb.scrollTop = tb.scrollHeight;
+}
+
+// ════════════════════════════════════════════════
+// TAB B — EXPLANATION ENGINE
+// ════════════════════════════════════════════════
+
+let selectedScenario = null;
+
+function renderScenarios() {
+  const sel = document.getElementById('scenario-selector');
+  sel.innerHTML = scenarios.map(s => `
+    <div class="scenario-btn" id="sc-${s.id}" onclick="selectScenario('${s.id}')">
+      <div class="s-icon">${s.icon}</div>
+      <div class="s-title">${s.title}</div>
+      <div class="s-desc">${s.desc}</div>
+    </div>
+  `).join('');
+}
+
+function selectScenario(id) {
+  selectedScenario = scenarios.find(s => s.id === id);
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sc-'+id).classList.add('active');
+
+  // Render input fields
+  const fields = document.getElementById('input-fields');
+  fields.innerHTML = Object.entries(selectedScenario.input).map(([k,v]) => `
+    <div class="io-field"><label>${k}</label><div class="val">${v}</div></div>
+  `).join('');
+
+  // Reset outputs
+  document.getElementById('output-display-text').textContent = 'Click "Run Explanation Engine" to process this event.';
+  ['out-explanation','out-action','out-service','out-restore','out-safety','out-words'].forEach(id => document.getElementById(id).textContent = '—');
+  ['out-latency','out-halluc','out-autonomy','out-cost'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('trace-b').innerHTML = `<div class="trace-line"><span class="t-time">[ready]</span> <span class="t-agent">SubAgent-B</span> <span class="t-action">→ event loaded · code: ${selectedScenario.input.reason_code}</span></div>`;
+}
+
+function runEngine() {
+  if (!selectedScenario) return;
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Processing…';
+
+  const display = document.getElementById('output-display-text');
+  display.innerHTML = '<span class="typing-cursor"></span>';
+  const tb = document.getElementById('trace-b');
+
+  // Animate trace lines
+  let traceIdx = 0;
+  const traceInterval = setInterval(() => {
+    if (traceIdx < selectedScenario.trace.length) {
+      tb.innerHTML += `<div class="trace-line"><span class="t-time">[${(traceIdx*0.081+0.04).toFixed(3)}s]</span> <span class="t-agent">SubAgent-B</span> <span class="t-action">→ ${selectedScenario.trace[traceIdx]}</span></div>`;
+      tb.scrollTop = tb.scrollHeight;
+      traceIdx++;
+    } else {
+      clearInterval(traceInterval);
+    }
+  }, 180);
+
+  // Type out explanation after delay
+  setTimeout(() => {
+    const text = selectedScenario.output.explanation;
+    let i = 0;
+    display.innerHTML = '<span class="typing-cursor"></span>';
+    const typeInterval = setInterval(() => {
+      if (i < text.length) {
+        display.innerHTML = text.slice(0, i+1) + '<span class="typing-cursor"></span>';
+        i++;
+      } else {
+        display.innerHTML = text;
+        clearInterval(typeInterval);
+
+        // Fill output schema
+        const o = selectedScenario.output;
+        document.getElementById('out-explanation').textContent = o.explanation;
+        document.getElementById('out-action').textContent = o.action_required;
+        document.getElementById('out-service').textContent = o.service_visit_needed;
+        document.getElementById('out-restore').textContent = o.restore_condition;
+        document.getElementById('out-safety').textContent = o.safety_check_passed;
+        document.getElementById('out-words').textContent = o.explanation.split(' ').length + ' / 25 max';
+
+        // Fill meta
+        document.getElementById('out-latency').textContent = selectedScenario.latency;
+        document.getElementById('out-halluc').textContent = selectedScenario.halluc;
+        document.getElementById('out-autonomy').textContent = selectedScenario.autonomy;
+        document.getElementById('out-cost').textContent = selectedScenario.cost;
+
+        btn.disabled = false;
+        btn.textContent = '▶ Run Explanation Engine';
+      }
+    }, 28);
+  }, 900);
+}
+
+// ════════════════════════════════════════════════
+// TAB C — TRUST BUILDER
+// ════════════════════════════════════════════════
+
+function renderMilestones() {
+  const grid = document.getElementById('milestones-grid');
+  grid.innerHTML = milestoneData.map(m => `
+    <div class="milestone ${m.done ? 'done' : m.current ? 'current' : ''}">
+      <div class="milestone-week">${m.week}</div>
+      <div class="milestone-miles">${m.done ? m.miles : m.current ? m.miles : '—'}</div>
+      <div class="milestone-label">${m.done ? '✓ Complete' : m.current ? 'In progress' : `Goal: ${m.target} mi`}</div>
+    </div>
+  `).join('');
+}
+
+function renderCoachingLog() {
+  const log = document.getElementById('coaching-log');
+  log.innerHTML = coachingLog.map(l => `
+    <div class="log-item">
+      <div class="log-icon">${l.icon}</div>
+      <div>
+        <div class="log-text">${l.text}</div>
+        <div class="log-time">${l.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function activateFSD() {
+  const card = document.querySelector('.route-card');
+  card.style.borderColor = '#4ade80';
+  card.querySelector('.route-title').textContent = '✅ FSD Activated — I-405 North';
+  card.querySelector('.route-desc').textContent = 'FSD is now active. The Trust Builder will track this session toward your weekly progress goal. Stay attentive and keep hands ready.';
+  card.querySelector('.route-actions').innerHTML = '<span class="badge ready"><span class="badge-dot"></span>Session in progress</span>';
+
+  // Animate progress
+  const fill = document.getElementById('progress-fill');
+  const miles = document.getElementById('miles-done');
+  const pct = document.getElementById('progress-pct');
+  let m = 44;
+  const tick = setInterval(() => {
+    m += 0.3;
+    const p = Math.min(Math.round((m/70)*100), 89);
+    fill.style.width = p + '%';
+    miles.textContent = Math.round(m);
+    pct.textContent = p + '% complete';
+    if (m >= 58) clearInterval(tick);
+  }, 100);
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+
+renderCameras();
+renderScenarios();
+renderMilestones();
+renderCoachingLog();
+</script>
+</body>
+</html>
