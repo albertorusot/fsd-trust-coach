@@ -41,7 +41,7 @@ Analyzes commute patterns and surfaces personalized route suggestions during the
 ## Live Prototype
 
 **[→ Open Prototype](index.html)**  
-*(Or view live at: `https://[your-github-username].github.io/fsd-trust-coach/`)*
+*(Or view live at: `https://albertorusot.github.io/fsd-trust-coach/`)*
 
 The prototype demonstrates all three sub-agents in a single interactive interface:
 - **Tab A:** Click any camera to simulate degradation and watch the agent respond in real time
