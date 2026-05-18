@@ -1,5 +1,5 @@
 # FSD Readiness & Trust Coach
-**MGMT 276 — Product Strategy | Anderson School of Management**  
+**MGMT 275 — Product Strategy | Anderson School of Management**  
 Alberto Ruiz & Yirong (Jen) Peng | May 2026
 
 ---
@@ -41,7 +41,7 @@ Analyzes commute patterns and surfaces personalized route suggestions during the
 ## Live Prototype
 
 **[→ Open Prototype](index.html)**  
-*(Or view live at: `https://albertorusot.github.io/fsd-trust-coach/`)*
+*(Or view live at: `https://[your-github-username].github.io/fsd-trust-coach/`)*
 
 The prototype demonstrates all three sub-agents in a single interactive interface:
 - **Tab A:** Click any camera to simulate degradation and watch the agent respond in real time
@@ -110,3 +110,6 @@ See [`source_of_truth.md`](source_of_truth.md) for the complete agent specificat
 - All agent logic is client-side for demo reliability
 - Architecture designed for production implementation with LLM API (Anthropic Claude or fine-tuned model) + Tesla vehicle data APIs
 
+---
+
+*MGMT 275 Final Project · Anderson School of Management · May 2026*

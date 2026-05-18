@@ -1,5 +1,5 @@
 # FSD Readiness & Trust Coach — Source of Truth Specification
-**Course:** MGMT 276 — Product Strategy | Anderson School of Management  
+**Course:** MGMT 275 — Product Strategy | Anderson School of Management  
 **Team:** Alberto Ruiz & Yirong (Jen) Peng  
 **Version:** Final (v3.0) | May 2026  
 **Prototype:** [fsd-trust-coach demo](index.html)
@@ -25,17 +25,19 @@ All metrics normalized to trial end (T=0 = Day 30):
 
 | Metric | Target | Baseline |
 |--------|--------|----------|
-| Trial-to-paid conversion at T=0 | 10–12% | ~2% (YipitData, 2024) |
-| Month-3 retention at T+90 | 40% | ~25% (internal estimate) |
+| Trial-to-paid conversion at T=0 | 10–12% | ~2% (YipitData, 2024)¹ |
+| Month-3 retention at T+90 | 40% | TBD (to be established from Tesla cohort data) |
 | Camera-related service appointments | ↓10% | Baseline TBD |
 | FSD engagement miles per subscriber | ↑20% | Baseline TBD |
 
 **North star:** Month-3 retention among converted subscribers.  
 **Must beat:** GM Super Cruise 2025 month-3 retention of ~30%.
 
+> ¹ **Conversion target rationale:** Early third-party estimates (YipitData, 2024) placed Tesla FSD free-trial conversion near ~2%, while GM reported roughly 20% post-trial attach rates for Super Cruise subscribers. The Trust Coach specifically targets onboarding confusion and repeated successful activations during the first 30 days. Improving conversion from low-single digits toward high-single digits within the treatment cohort is directionally plausible; the 10–12% target represents the midpoint of that range and will be pressure-tested against Day-30 A/B results before full rollout.
+
 ### Guardrails
 
-- **Multi-driver suspension correlation:** If suspensions from secondary drivers correlate with trialist churn, Sub-Agent C's multi-driver logic is retention-critical and cannot be deferred.
+- **Kill threshold:** If T1 fails to beat control by ≥2 pp at Day 30, kill the feature and reallocate engineering resources.
 - **False-positive notification rate:** Track dismissals and snoozes. Target: <5% of DEGRADED alerts without a visible cause.
 - **Self-resolve rate:** Fraction of disengagement explanations resolved without a service visit. Regressions signal Explanation Engine drift.
 - **In-drive safety:** Zero notifications during active driving. Zero outputs may imply FSD is fully autonomous.
@@ -267,12 +269,6 @@ Solve the cold-start problem. Most trialists don't churn because of a single bad
   - Off-route override taken
   - Clean session ≥ 10 consecutive miles (positive reinforcement)
 
-**Multi-driver awareness:**
-- Detect 2+ active profiles on vehicle
-- When non-primary driver attention warnings accumulate, surface single aggregated notification to current active driver: *"Another driver: 3/5 attention warnings this week — 2 more will pause FSD for 7 days."*
-- Updated in place (no duplicate notifications per week)
-- Suspension reason copy is owned by Sub-Agent B, not Sub-Agent C
-
 ### Output Schema
 
 ```json
@@ -295,12 +291,9 @@ Solve the cold-start problem. Most trialists don't churn because of a single bad
     "entry_text": "string (plain language, no word limit in park mode)",
     "write_to_journal": true | false
   },
-  "multi_driver_alert": {
-    "triggered": true | false,
-    "non_primary_strike_count": 0–5,
-    "alert_text": "string"
-  }
 }
+
+> **Note:** Multi-driver awareness (secondary-driver strike aggregation and cross-profile suspension notifications) is de-scoped from v1. Tracked for v2 pending A/B results.
 ```
 
 ### Data Requirements
@@ -310,7 +303,6 @@ Solve the cold-start problem. Most trialists don't churn because of a single bad
 | Trip logs | Route, engagement miles, disengagement locations | Structured JSON | Per trip |
 | In-drive event stream | Acceleration-while-engaged, hands-off duration, off-route delta | Event-driven | Real-time |
 | Per-profile attention-warning counter | Strike count with weekly decay | Integer | On event |
-| Multi-driver profile registry | Active profiles + non-primary strike aggregation | Array | On profile switch |
 
 ### Behavioral Rules
 
@@ -318,13 +310,10 @@ Solve the cold-start problem. Most trialists don't churn because of a single bad
 - Suppress all route suggestions during active DEGRADED status (Sub-Agent A signal)
 - Suppress prompts in weather conditions that would increase disengagement likelihood
 - Gate coaching entries to park mode only — no in-drive coaching copy
-- Aggregate multi-driver strikes into a single notification (never send one per driver)
-
 **Must not:**
 - Suggest FSD on routes the agent cannot confirm as compatible
 - Send a route prompt if one was dismissed in the last 24 hours
 - Write to the vehicle journal during drive or reverse mode
-- Display multi-driver suspension copy (this is owned by Sub-Agent B)
 
 ---
 
@@ -385,8 +374,8 @@ Phase 2 — Sub-Agent B
 Phase 3 — Sub-Agent C
   → Derive commute patterns and ship Progressive Trust Builder route suggestions
   → Add usage-pattern coaching (acceleration-while-engaged, hands-off, off-route)
-  → Aggregate non-primary strikes into single in-place notification
   → Build shared park-mode-only journal with weekly pattern grouping
+  → (Multi-driver strike aggregation deferred to Phase 3b / v2)
 
 Phase 4 — Sub-Agent D
   → Stand up event store and per-account record (30-day trialists only)

@@ -375,6 +375,156 @@
     .milestones { grid-template-columns: repeat(2, 1fr); }
     .main { padding: 16px; }
   }
+
+  /* ── DEVICE FRAME BAR ── */
+  .device-bar {
+    background: #0d0d0d;
+    border-bottom: 1px solid #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 32px;
+  }
+  .device-bar-label { font-size: 11px; color: #555; margin-right: 4px; }
+  .dev-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #777;
+    font-size: 11px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .dev-btn:hover { border-color: #555; color: #ccc; }
+  .dev-btn.active { background: #1e0a0c; border-color: #e31937; color: #fff; }
+
+  /* ── MOBILE FRAME ── */
+  .device-scene {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 16px 48px;
+    background: #050505;
+    min-height: calc(100vh - 132px);
+    transition: all 0.3s;
+  }
+  .device-scene.no-frame { padding: 0; display: block; background: transparent; }
+
+  .phone-shell {
+    display: none;
+    width: 393px;
+    background: #0a0a0a;
+    border-radius: 52px;
+    border: 9px solid #2c2c2e;
+    box-shadow: 0 0 0 1px #444, inset 0 0 0 1px #1c1c1e, 0 40px 100px rgba(0,0,0,0.85);
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .phone-statusbar {
+    background: #111;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .phone-statusbar .notch {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 34px;
+    background: #2c2c2e;
+    border-radius: 0 0 24px 24px;
+  }
+  .phone-statusbar .time { position: relative; z-index: 2; }
+  .phone-statusbar .icons { font-size: 10px; position: relative; z-index: 2; }
+  .phone-inner {
+    height: 760px;
+    overflow-y: auto;
+    background: #0a0a0a;
+    scrollbar-width: none;
+  }
+  .phone-inner::-webkit-scrollbar { display: none; }
+  .phone-inner .topbar { display: none; }
+  .phone-inner .nav-tabs { padding: 0 12px; }
+  .phone-inner .main { padding: 12px; }
+  .phone-homeind {
+    background: #111;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .phone-homeind-bar {
+    width: 130px; height: 5px;
+    background: #555; border-radius: 3px;
+  }
+
+  /* ── TESLA SCREEN FRAME ── */
+  .tesla-shell {
+    display: none;
+    width: 100%;
+    max-width: 1200px;
+    background: #000;
+    border-radius: 18px;
+    border: 10px solid #1c1c1e;
+    box-shadow: 0 0 0 2px #333, 0 50px 120px rgba(0,0,0,0.9);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .tesla-screen-bar {
+    background: #111;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid #222;
+    font-size: 11px;
+    color: #666;
+    flex-shrink: 0;
+  }
+  .tesla-screen-bar .tbar-left { display: flex; align-items: center; gap: 16px; }
+  .tesla-screen-bar .tbar-right { display: flex; align-items: center; gap: 16px; }
+  .tesla-screen-bar .tbar-status { color: #4ade80; font-weight: 600; }
+  .tesla-inner {
+    max-height: 680px;
+    overflow-y: auto;
+    background: #0a0a0a;
+    scrollbar-width: none;
+  }
+  .tesla-inner::-webkit-scrollbar { display: none; }
+  .tesla-inner .topbar { display: none; }
+  .tesla-stand {
+    height: 20px;
+    background: #111;
+    border-top: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #333;
+    letter-spacing: 1px;
+  }
+
+  /* frame visibility modes */
+  .device-scene.mode-web .phone-shell { display: none; }
+  .device-scene.mode-web .tesla-shell { display: none; }
+  .device-scene.mode-mobile .phone-shell { display: flex; flex-direction: column; }
+  .device-scene.mode-mobile .tesla-shell { display: none; }
+  .device-scene.mode-tesla .phone-shell { display: none; }
+  .device-scene.mode-tesla .tesla-shell { display: block; }
+  .device-scene.mode-web .web-content { display: block; }
+  .device-scene.mode-mobile .web-content { display: none; }
+  .device-scene.mode-tesla .web-content { display: none; }
 </style>
 </head>
 <body>
@@ -387,7 +537,7 @@
     </svg>
     <div>
       <div class="topbar-title">FSD Trust Coach</div>
-      <div class="topbar-subtitle">MGMT 276 · Anderson School · Prototype v1.0</div>
+      <div class="topbar-subtitle">MGMT 275 · Anderson School · Prototype v1.0</div>
     </div>
   </div>
   <div class="topbar-status">
@@ -403,8 +553,20 @@
   <button class="tab-btn" onclick="switchTab('c')">Sub-Agent C — Trust Builder</button>
 </div>
 
-<!-- MAIN -->
-<div class="main">
+<!-- DEVICE FRAME BAR -->
+<div class="device-bar">
+  <span class="device-bar-label">View as:</span>
+  <button class="dev-btn active" id="dev-web" onclick="setFrame('web')">🖥 Web</button>
+  <button class="dev-btn" id="dev-mobile" onclick="setFrame('mobile')">📱 Mobile App</button>
+  <button class="dev-btn" id="dev-tesla" onclick="setFrame('tesla')">🚗 Tesla Screen</button>
+</div>
+
+<!-- DEVICE SCENE WRAPPER -->
+<div class="device-scene no-frame mode-web" id="device-scene">
+
+  <!-- WEB: normal full-width layout -->
+  <div class="web-content">
+  <div class="main">
 
   <!-- ══════════════════════════════════════════════════
        TAB A — READINESS DASHBOARD
@@ -574,6 +736,205 @@
   </div>
 
 </div><!-- /main -->
+  </div><!-- /web-content -->
+
+  <!-- ══ MOBILE APP FRAME ══ -->
+  <div class="phone-shell" id="phone-shell">
+    <div class="phone-statusbar">
+      <span class="time">9:41</span>
+      <div class="notch"></div>
+      <span class="icons">●●● 5G 🔋</span>
+    </div>
+    <div class="phone-inner" id="phone-inner">
+      <!-- nav tabs cloned for mobile -->
+      <div class="nav-tabs" style="padding:0 8px">
+        <button class="tab-btn active" onclick="switchPhoneTab('a')" id="ptab-a" style="padding:10px 12px;font-size:11px">Agent A</button>
+        <button class="tab-btn" onclick="switchPhoneTab('b')" id="ptab-b" style="padding:10px 12px;font-size:11px">Agent B</button>
+        <button class="tab-btn" onclick="switchPhoneTab('c')" id="ptab-c" style="padding:10px 12px;font-size:11px">Agent C</button>
+      </div>
+      <!-- mobile content panels (simplified summaries) -->
+      <div class="main" style="padding:14px">
+        <div id="mphone-a" class="tab-panel active">
+          <div class="section-header" style="margin-bottom:14px">
+            <h2 style="font-size:16px">FSD Readiness</h2>
+            <p style="font-size:12px">Camera health check — tap to simulate degradation</p>
+          </div>
+          <div class="overall-status" style="margin-bottom:12px;padding:14px">
+            <div><div class="overall-label" style="font-size:10px">FSD Status</div><div class="overall-value" style="font-size:18px;color:#4ade80">● READY</div></div>
+            <span class="badge ready" style="font-size:10px"><span class="badge-dot"></span>All cameras OK</span>
+          </div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-title" style="font-size:11px;margin-bottom:10px">Camera Health</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="m-cam-grid">
+              <!-- filled by JS -->
+            </div>
+          </div>
+          <div class="card" style="background:#0d1f14;border-color:#1a3a28">
+            <div style="font-size:10px;color:#4ade80;font-weight:600;margin-bottom:6px">⚡ Sub-Agent A Active</div>
+            <div style="font-size:11px;color:#aaa;line-height:1.5">Polling all 8 cameras every 60s. You'll receive a push notification here if a camera degrades overnight — naming the exact camera to clean.</div>
+          </div>
+        </div>
+        <div id="mphone-b" class="tab-panel">
+          <div class="section-header" style="margin-bottom:14px">
+            <h2 style="font-size:16px">FSD Explanation</h2>
+            <p style="font-size:12px">Last disengagement — tap to see details</p>
+          </div>
+          <div class="output-display" style="margin-bottom:12px">
+            <div class="output-label" style="font-size:10px">In-Car Message Delivered</div>
+            <div class="output-explanation" style="font-size:14px;padding:14px">Right B-pillar camera is dirty — clean it and FSD will restore immediately.</div>
+            <div class="output-meta" style="font-size:10px;gap:8px;flex-wrap:wrap">
+              <div class="output-meta-item">Latency: 187ms</div>
+              <div class="output-meta-item">Hallucination: 0%</div>
+            </div>
+          </div>
+          <div class="card" style="background:#1a0a0a;border-color:#3a1a1a">
+            <div style="font-size:10px;color:#e31937;font-weight:600;margin-bottom:6px">Disengagement Details</div>
+            <div style="font-size:11px;color:#aaa;line-height:1.6">Code: CAM_OBSTRUCTION · Camera: Right B-Pillar · Score: 0.21<br>Action: Clean camera<br>Service visit: Not needed</div>
+          </div>
+          <div class="card" style="margin-top:12px;background:#0d1f14;border-color:#1a3a28">
+            <div style="font-size:10px;color:#4ade80;font-weight:600;margin-bottom:6px">⚡ Sub-Agent B Active</div>
+            <div style="font-size:11px;color:#aaa;line-height:1.5">Plain-language explanations delivered within 700ms. No error codes, no silence, no unnecessary service visits.</div>
+          </div>
+        </div>
+        <div id="mphone-c" class="tab-panel">
+          <div class="section-header" style="margin-bottom:14px">
+            <h2 style="font-size:16px">Trust Builder</h2>
+            <p style="font-size:12px">Day 12 of 30-day trial</p>
+          </div>
+          <div class="route-card" style="margin-bottom:12px;padding:14px">
+            <div class="route-tag" style="font-size:10px">🎯 Today's Recommendation</div>
+            <div class="route-title" style="font-size:14px;margin:6px 0">I-405 North is ideal for FSD today</div>
+            <div class="route-desc" style="font-size:11px;margin-bottom:10px">94% FSD compatibility · Clear lanes · No construction</div>
+            <button class="btn-primary" style="font-size:12px;padding:8px 16px">Activate FSD</button>
+          </div>
+          <div class="progress-card" style="margin-bottom:12px;padding:14px">
+            <div class="progress-header" style="margin-bottom:8px">
+              <div class="progress-title" style="font-size:12px">Week 2 FSD Miles</div>
+              <div class="progress-week" style="font-size:10px">Day 8–14</div>
+            </div>
+            <div class="progress-bar-outer" style="margin-bottom:8px"><div class="progress-bar-inner" style="width:63%"></div></div>
+            <div style="font-size:11px;color:#aaa">44 of 70 miles · 63% complete</div>
+          </div>
+          <div class="card" style="background:#0d1f14;border-color:#1a3a28">
+            <div style="font-size:10px;color:#4ade80;font-weight:600;margin-bottom:6px">⚡ Sub-Agent C Active</div>
+            <div style="font-size:11px;color:#aaa;line-height:1.5">Building your FSD habit through personalized route nudges and weekly progress tracking. Coaching journal available in park mode.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-homeind"><div class="phone-homeind-bar"></div></div>
+  </div><!-- /phone-shell -->
+
+  <!-- ══ TESLA TOUCHSCREEN FRAME ══ -->
+  <div class="tesla-shell" id="tesla-shell">
+    <div class="tesla-screen-bar">
+      <div class="tbar-left">
+        <span>⬡ Tesla</span>
+        <span>FSD Trust Coach v1.0</span>
+        <span class="tbar-status">● Agent Active</span>
+      </div>
+      <div class="tbar-right">
+        <span>🌡 72°F · Clear</span>
+        <span>⚡ 87%</span>
+        <span>9:41 AM</span>
+      </div>
+    </div>
+    <div class="tesla-inner" id="tesla-inner">
+      <div class="nav-tabs" style="padding:0 20px">
+        <button class="tab-btn active" onclick="switchTeslaTab('a')" id="ttab-a">Sub-Agent A — Readiness</button>
+        <button class="tab-btn" onclick="switchTeslaTab('b')" id="ttab-b">Sub-Agent B — Explanation</button>
+        <button class="tab-btn" onclick="switchTeslaTab('c')" id="ttab-c">Sub-Agent C — Trust Builder</button>
+      </div>
+      <div class="main" id="tesla-main" style="padding:20px;max-width:none">
+        <div id="mtesla-a" class="tab-panel active">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <div class="section-header" style="margin-bottom:12px">
+                <h2 style="font-size:18px">FSD Readiness Dashboard</h2>
+                <p style="font-size:12px">Sub-Agent A — camera health before activation</p>
+              </div>
+              <div class="overall-status" style="padding:14px;margin-bottom:12px">
+                <div><div class="overall-label" style="font-size:10px">FSD Status</div><div class="overall-value" style="color:#4ade80;font-size:22px">● READY</div></div>
+                <span class="badge ready" style="font-size:11px"><span class="badge-dot"></span>All cameras nominal</span>
+              </div>
+            </div>
+            <div class="card" style="padding:14px">
+              <div class="card-title" style="font-size:11px;margin-bottom:10px">Camera Health Grid</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="t-cam-grid"><!-- filled by JS --></div>
+            </div>
+          </div>
+          <div class="card" style="background:#0d1f14;border-color:#1a3a28;padding:14px">
+            <div style="font-size:11px;color:#4ade80;font-weight:600;margin-bottom:6px">⚡ Sub-Agent A — Live Monitoring</div>
+            <div style="font-size:12px;color:#aaa;line-height:1.6">Polling all 8 exterior cameras every 60 seconds. Camera health surfaces here — before you activate FSD, not after a disengagement. Overnight degradation triggers a push notification naming the exact camera.</div>
+          </div>
+        </div>
+        <div id="mtesla-b" class="tab-panel">
+          <div class="section-header" style="margin-bottom:12px">
+            <h2 style="font-size:18px">Plain-Language Explanation Engine</h2>
+            <p style="font-size:12px">Sub-Agent B — disengagement explanations in ≤700ms</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:16px">
+            <div>
+              <div class="output-display" style="margin-bottom:12px">
+                <div class="output-label" style="font-size:10px">In-Car Display Message</div>
+                <div class="output-explanation" style="font-size:15px;padding:16px">Right B-pillar camera is dirty — clean it and FSD will restore immediately.</div>
+                <div class="output-meta" style="font-size:10px">
+                  <div class="output-meta-item">Latency: 187ms</div>
+                  <div class="output-meta-item">Hallucination: 0%</div>
+                  <div class="output-meta-item">Cost: $0.0009</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="card" style="margin-bottom:10px">
+                <div class="card-title" style="font-size:11px">Event Payload (Input)</div>
+                <div class="io-field"><label>reason_code</label><div class="val">CAM_OBSTRUCTION</div></div>
+                <div class="io-field"><label>camera_affected</label><div class="val">right_b_pillar</div></div>
+                <div class="io-field"><label>severity</label><div class="val">HIGH</div></div>
+                <div class="io-field"><label>service_visit_needed</label><div class="val" style="color:#4ade80">false</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="mtesla-c" class="tab-panel">
+          <div class="section-header" style="margin-bottom:12px">
+            <h2 style="font-size:18px">Progressive Trust Builder</h2>
+            <p style="font-size:12px">Sub-Agent C — personalised first 30 days · Day 12 of trial</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px">
+            <div>
+              <div class="route-card" style="margin-bottom:12px;padding:16px">
+                <div class="route-tag" style="font-size:11px">🎯 Agent Recommendation — Day 12</div>
+                <div class="route-title" style="font-size:16px;margin:8px 0">Your I-405 North commute is ideal for FSD today</div>
+                <div class="route-desc" style="font-size:12px;margin-bottom:12px">94% FSD compatibility · Clear lanes · No construction zones · Favorable weather</div>
+                <div style="display:flex;gap:10px">
+                  <button class="btn-primary" style="font-size:12px;padding:8px 18px">Activate FSD</button>
+                  <button class="btn-secondary" style="font-size:12px;padding:8px 14px">Later</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="progress-card" style="margin-bottom:12px;padding:14px">
+                <div class="progress-header" style="margin-bottom:8px">
+                  <div class="progress-title" style="font-size:13px">Week 2 FSD Miles</div>
+                  <div class="progress-week" style="font-size:11px">Trial Day 8–14</div>
+                </div>
+                <div class="progress-bar-outer" style="margin-bottom:8px"><div class="progress-bar-inner" style="width:63%"></div></div>
+                <div style="font-size:12px;color:#aaa;display:flex;justify-content:space-between"><span>44 of 70 miles</span><span style="color:#e31937">63%</span></div>
+              </div>
+              <div class="card" style="background:#0d1f14;border-color:#1a3a28;padding:12px">
+                <div style="font-size:10px;color:#4ade80;font-weight:600;margin-bottom:6px">Coach Journal — Park Mode Only</div>
+                <div style="font-size:11px;color:#aaa;line-height:1.5">✅ 12-mile clean session on I-405 N — your longest yet.<br>💡 Acceleration override detected near mile 24.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tesla-stand">TESLA TOUCHSCREEN · 15.4" · FSD TRUST COACH PROTOTYPE</div>
+  </div><!-- /tesla-shell -->
+
+</div><!-- /device-scene -->
 
 <script>
 // ════════════════════════════════════════════════
@@ -754,38 +1115,8 @@ const scenarios = [
     ],
     latency:'212ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0010'
   },
-  {
-    id:'multi_driver',
-    icon:'👥',
-    title:'Multi-Driver Suspension',
-    desc:'Secondary driver triggered pause',
-    input:{
-      reason_code:'MULTI_DRIVER_SUSPENSION',
-      camera_affected:'null',
-      camera_score:'null',
-      weather:'Clear',
-      route_context:'City streets · Driver: Primary profile',
-      severity:'MEDIUM',
-      caused_by_non_primary:'true',
-    },
-    output:{
-      explanation:'FSD is paused because another driver on this vehicle accumulated attention warnings this week — it will restore in 5 days.',
-      action_required:'WAIT',
-      service_visit_needed:'false',
-      restore_condition:'Strike decay timer: 5 days',
-      safety_check_passed:'true',
-    },
-    trace:[
-      'received event · code: MULTI_DRIVER_SUSPENSION · caused_by_non_primary: true',
-      'active profile: primary · suspension source: secondary profile (3 strikes)',
-      'explanation generated · 19 words · correctly attributes cause to other driver',
-      'key: primary driver not blamed — explanation isolates cause accurately',
-      'autonomy classifier · PASS',
-      'note: prevents primary trialist from assuming they caused the suspension',
-    ],
-    latency:'267ms', halluc:'0% (clean)', autonomy:'PASS', cost:'$0.0012'
-  },
 ];
+// Multi-Driver Suspension scenario de-scoped to v2
 
 const milestoneData = [
   { week:'Week 1', miles:28, target:35, done:true },
@@ -809,6 +1140,66 @@ function switchTab(t) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['a','b','c'][i]===t));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+t).classList.add('active');
+}
+
+// ════════════════════════════════════════════════
+// DEVICE FRAME SWITCHER
+// ════════════════════════════════════════════════
+
+function setFrame(mode) {
+  const scene = document.getElementById('device-scene');
+  scene.className = 'device-scene';
+  if (mode === 'web') {
+    scene.classList.add('no-frame', 'mode-web');
+  } else if (mode === 'mobile') {
+    scene.classList.add('mode-mobile');
+    renderMobileCameras();
+  } else if (mode === 'tesla') {
+    scene.classList.add('mode-tesla');
+    renderTeslaCameras();
+  }
+  document.querySelectorAll('.dev-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('dev-'+mode).classList.add('active');
+}
+
+function switchPhoneTab(t) {
+  ['a','b','c'].forEach(x => {
+    document.getElementById('ptab-'+x).classList.toggle('active', x===t);
+    document.getElementById('mphone-'+x).classList.toggle('active', x===t);
+  });
+}
+
+function switchTeslaTab(t) {
+  ['a','b','c'].forEach(x => {
+    document.getElementById('ttab-'+x).classList.toggle('active', x===t);
+    document.getElementById('mtesla-'+x).classList.toggle('active', x===t);
+  });
+}
+
+function renderMobileCameras() {
+  const g = document.getElementById('m-cam-grid');
+  if (!g) return;
+  g.innerHTML = cameraScores.map(c => `
+    <div style="background:#1a1a1a;border-radius:8px;padding:8px;font-size:10px">
+      <div style="color:#888;margin-bottom:4px">${c.name}</div>
+      <div style="height:4px;background:#333;border-radius:2px;margin-bottom:4px">
+        <div style="width:${Math.round(c.score*100)}%;height:100%;background:${c.score>=0.8?'#4ade80':c.score>=0.6?'#fbbf24':'#f87171'};border-radius:2px"></div>
+      </div>
+      <div style="color:${c.score>=0.8?'#4ade80':c.score>=0.6?'#fbbf24':'#f87171'};font-weight:600">${Math.round(c.score*100)}%</div>
+    </div>`).join('');
+}
+
+function renderTeslaCameras() {
+  const g = document.getElementById('t-cam-grid');
+  if (!g) return;
+  g.innerHTML = cameraScores.map(c => `
+    <div style="background:#1a1a1a;border-radius:6px;padding:8px;font-size:10px">
+      <div style="color:#888;margin-bottom:3px">${c.name}</div>
+      <div style="height:3px;background:#333;border-radius:2px;margin-bottom:3px">
+        <div style="width:${Math.round(c.score*100)}%;height:100%;background:${c.score>=0.8?'#4ade80':c.score>=0.6?'#fbbf24':'#f87171'};border-radius:2px"></div>
+      </div>
+      <div style="color:${c.score>=0.8?'#4ade80':c.score>=0.6?'#fbbf24':'#f87171'};font-weight:600">${Math.round(c.score*100)}%</div>
+    </div>`).join('');
 }
 
 // ════════════════════════════════════════════════
